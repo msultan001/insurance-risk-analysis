@@ -75,5 +75,4 @@ This project uses DVC to manage large datasets. To fetch the data:
   pytest
   ```
 
-## 7. License
-[MIT License](LICENSE)
+
