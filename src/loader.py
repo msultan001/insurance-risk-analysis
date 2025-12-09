@@ -4,7 +4,7 @@ import os
 
 def load_data(filepath):
     """
-    Loads data from the specified filepath.
+    Loads data from the specified filepath with proper encoding detection.
     Args:
         filepath (str): Path to the csv/txt file.
     Returns:
@@ -13,22 +13,27 @@ def load_data(filepath):
     if not os.path.exists(filepath):
         raise FileNotFoundError(f"File not found: {filepath}")
     
-    # Attempt to read with different delimiters if needed, mostly | according to initial check, but notebook had \t
-    # Based on the user notebook, it was checking MachineLearningRating_v3.txt, often these are pipe separated or tab
-    # The notebook tried delimiter='\t'. I will try that first or |
+    # Try different encodings and separators
+    # The file appears to be UTF-16 LE encoded with pipe separator
+    encodings = ['utf-16-le', 'utf-16', 'utf-8', 'latin1']
+    separators = ['|', '\t', ',']
     
-    # Actually, let's peek at the file or assume the user knew it was tab separated?
-    # Or make it robust.
+    for encoding in encodings:
+        for sep in separators:
+            try:
+                df = pd.read_csv(
+                    filepath, 
+                    sep=sep, 
+                    encoding=encoding,
+                    low_memory=False,
+                    on_bad_lines='skip'  # Skip problematic lines
+                )
+                # Check if we got a valid dataframe with multiple columns
+                if df.shape[1] >= 2:
+                    print(f"Successfully loaded data with encoding={encoding}, separator='{sep}'")
+                    return df
+            except Exception:
+                continue
     
-    try:
-        df = pd.read_csv(filepath, sep='|', low_memory=False) # Common for this dataset
-        if df.shape[1] < 2:
-             df = pd.read_csv(filepath, sep='\t', low_memory=False)
-        if df.shape[1] < 2:
-             df = pd.read_csv(filepath, sep=',', low_memory=False)
-             
-        # Check if dates need parsing, but keeping it simple for now.
-        return df
-    except Exception as e:
-        print(f"Error loading data: {e}")
-        raise e
+    # If all attempts fail, raise an error
+    raise ValueError(f"Could not load data from {filepath} with any supported encoding/separator combination")

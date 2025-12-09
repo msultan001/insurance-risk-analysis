@@ -39,21 +39,75 @@ To manage the large dataset (approx. 500MB) responsibly:
 *   **Git Best Practices**: We utilized a feature-branch workflow (`task-1`, `task-2`) to isolate changes.
 *   **Automated Testing**: A GitHub Actions workflow (`unittests.yml`) now runs `pytest` on every commit, validating the integrity of our data processing logic.
 
-## 4. Visualizations & Analysis
+## 4. Exploratory Data Analysis (EDA) Findings
 
-The following plots highlight key trends in the insurance data:
+This section details the statistical properties of the dataset, quality issues identified, and key geographic trends.
 
-### 4.1. Distribution of Total Premium
+### 4.1. Descriptive Statistics
+
+The following table summarizes the central tendency and dispersion for key financial metrics. Notably, there are negative values in both premiums and claims which require further investigation as they may represent refunds or data errors.
+
+|       |   TotalPremium (R) |     TotalClaims (R) |
+|:------|---------------:|----------------:|
+| count |     1,000,098 |      1,000,098 |
+| mean  |    61.91      |     64.86     |
+| std   |   230.29      |   2,384.07       |
+| min   |  -782.58      | -12,002.4        |
+| 25%   |     0.00      |      0.00        |
+| 50%   |     2.18      |      0.00        |
+| 75%   |    21.93      |      0.00        |
+| max   | 65,282.60     | 393,092.00       |
+
+### 4.2. Missing Values Analysis
+
+Significant missing data was observed in several columns. The table below highlights features with missingness greater than 1%. `NumberOfVehiclesInFleet` is entirely missing and should be dropped. `CrossBorder` and `CustomValueEstimate` also have very high missing rates.
+
+| Column | Missing Count | Missing Percentage |
+|:---|---:|---:|
+| NumberOfVehiclesInFleet | 1,000,098 | 100.00% |
+| CrossBorder | 999,400 | 99.93% |
+| CustomValueEstimate | 779,642 | 77.96% |
+| Converted | 641,901 | 64.18% |
+| Rebuilt | 641,901 | 64.18% |
+| WrittenOff | 641,901 | 64.18% |
+| NewVehicle | 153,295 | 15.33% |
+| Bank | 145,961 | 14.59% |
+| AccountType | 40,232 | 4.02% |
+
+### 4.3. Outlier Analysis
+
+Using the Interquartile Range (IQR) method, we detected a substantial number of outliers, particularly in `TotalPremium`.
+
+| Column | Outlier Count | Percentage |
+|:---|---:|---:|
+| TotalPremium | 209,042 | 20.90% |
+| TotalClaims | 2,793 | 0.28% |
+
+The high percentage of outliers in `TotalPremium` suggests a highly skewed distribution or distinct customer segments (e.g., commercial vs. private) that may need separate modeling.
+
+### 4.4. Geographic Trends
+
+We analyzed the average premium and claims cost across different provinces to identify regional risk factors.
+
+![Average Premium by Province](figures/avg_premium_by_province.png)
+*Figure 4: Average Total Premium by Province. Premiums are relatively consistent across most provinces, with slight variations that may reflect regional risk adjustments.*
+
+![Average Claims by Province](figures/avg_claims_by_province.png)
+*Figure 5: Average Total Claims by Province. This plot identifies provinces with higher average claim costs, which is a critical factor for geographic risk rating.*
+
+### 4.5. Key Visualizations
+
+#### Distribution of Total Premium
 ![Distribution of Total Premium](figures/total_premium_dist.png)
-*Figure 1: Histogram of Total Premium. The distribution shows a skew towards lower premium amounts, with a long tail indicating a small number of high-value policies. This suggests that most clients fall into the standard premium range.*
+*Figure 1: Histogram of Total Premium. The distribution shows a skew towards lower premium amounts, with a long tail indicating a small number of high-value policies.*
 
-### 4.2. Premium vs. Vehicle Type
+#### Premium vs. Vehicle Type
 ![Total Premium by Vehicle Type](figures/premium_by_vehicle.png)
-*Figure 2: Boxplot of Total Premium by Vehicle Type. This visualization reveals that certain vehicle classes (e.g., Trucks) exhibit higher median premiums and variability compared to standard passenger cars, correlating with higher expected risk.*
+*Figure 2: Boxplot of Total Premium by Vehicle Type. Certain vehicle classes (e.g., Trucks) exhibit higher median premiums and variability compared to standard passenger cars.*
 
-### 4.3. Feature Correlation
+#### Feature Correlation
 ![Correlation Matrix](figures/correlation_matrix.png)
-*Figure 3: Correlation Matrix of numerical features. We observe a positive correlation between `TotalPremium` and `TotalClaims`, validating the assumption that higher premiums generally track with higher claim costs, though the relationship is not perfectly linear.*
+*Figure 3: Correlation Matrix of numerical features. A positive correlation exists between `TotalPremium` and `TotalClaims`, validating the assumption that higher premiums generally track with higher claim costs.*
 
 ## 5. Next Steps
 
